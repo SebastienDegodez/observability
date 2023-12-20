@@ -1,0 +1,87 @@
+version: "3.8"
+
+services:
+
+  # Infrastructure
+  loki:
+    image: grafana/loki:2.8.7
+    command: -config.file=/etc/loki/local-config.yml
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./etc/loki/local-config.yml:/etc/loki/local-config.yml      
+
+  # Application genere des traces
+  # Et les déposes dans un OTEL collector...
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.91.0
+    command: 
+      - --config=/etc/otel-collector.yml
+    volumes:
+      - ./etc/collector/otel-collector.yml:/etc/otel-collector.yml
+      - ./output:/etc/output:rw # Store the logs
+    ports:
+      - "8888:8888"   # Prometheus metrics exposed by the collector
+      - "8889:8889"   # Prometheus exporter metrics
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+
+  prometheus:
+    image: prom/prometheus:v2.48.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./etc/prometheus:/etc/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-remote-write-receiver
+      - --enable-feature=exemplar-storage
+
+  tempo:
+    image: grafana/tempo:2.3.1
+    command: [ "-config.file=/etc/tempo.yml" ]
+    volumes:
+      - ./etc/tempo/tempo.yml:/etc/tempo.yml
+      - ./tempo-data:/tmp/tempo
+    ports:
+      - "14268"  # jaeger ingest
+      - "3200"   # tempo
+      - "4317"  # otlp grpc
+      - "4318"  # otlp http
+      - "9411"   # zipkin
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./etc/grafana/datasources/:/etc/grafana/provisioning/datasources
+      - ./etc/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./etc/grafana/dashboards:/etc/grafana/dashboards
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor    
+    depends_on:
+      - loki
+      - prometheus
+      - tempo
+      - otel-collector
+
+  # Applications
+
+  weather-api-a:
+    build: 
+      context: Samples
+      dockerfile: WeatherApi/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317 # send traces to OpenTelemetry Collector
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc # send traces to OpenTelemetry Collector
+      - OTEL_SERVICE_NAME=weather-api # Le nom du service
+      - OTEL_RESOURCE_ATTRIBUTES=compose_service=weather-api-a 
+      #- OTEL_METRICS_EXPORTER=none # disable metrics exporter
+    ports:
+      - "8080:8080"
+  
