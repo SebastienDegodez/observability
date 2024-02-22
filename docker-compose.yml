@@ -27,7 +27,7 @@ services:
       - "4318:4318"   # OTLP HTTP receiver
 
   prometheus:
-    image: prom/prometheus:v2.49.1
+    image: prom/prometheus:v2.50.0
     ports:
       - "9090:9090"
     volumes:
