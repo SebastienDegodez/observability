@@ -14,7 +14,7 @@ services:
   # Application genere des traces
   # Et les déposes dans un OTEL collector...
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.105.0
+    image: otel/opentelemetry-collector-contrib:0.106.1
     command: 
       - --config=/etc/otel-collector.yml
     volumes:
