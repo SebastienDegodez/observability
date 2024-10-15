@@ -38,7 +38,7 @@ services:
       - --enable-feature=exemplar-storage
 
   tempo:
-    image: grafana/tempo:2.6.0
+    image: grafana/tempo:2.6.1
     command: [ "-config.file=/etc/tempo.yml" ]
     volumes:
       - ./etc/tempo/tempo.yml:/etc/tempo.yml
