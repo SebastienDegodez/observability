@@ -51,7 +51,7 @@ services:
       - "9411"   # zipkin
 
   grafana:
-    image: grafana/grafana:11.2.2
+    image: grafana/grafana:11.3.0
     ports:
       - "3000:3000"
     volumes:
