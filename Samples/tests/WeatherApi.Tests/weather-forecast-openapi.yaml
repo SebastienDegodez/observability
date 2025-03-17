@@ -1,0 +1,61 @@
+﻿---
+openapi: 3.0.2
+info:
+  title: WeatherForecast API
+  version: 1.0.0
+  description: A simple API for demonstrating Microcks
+  contact:
+    name: Sébastien DEGODEZ
+    url: https://github.com/microcks/microcks-testcontainers-dotnet
+    email: sebastien.degodez@gmail.com
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+paths:
+  /api/forecast:
+    get:
+      operationId: GetForecasts
+      summary: Get forecasts
+      description: Get forecasts
+      tags:
+        - forecast
+      responses:
+        "200":
+          description: Weather forecasts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Forecast'
+              examples:
+                all:
+                  value:
+                    - temperatureC: -1.5
+                      temperatureF: -1.5
+                      summary: Freezing
+                      date: 2021-01-01
+                    - temperatureC: 24.5
+                      temperatureF: 10.5
+                      summary: Chilly
+                      date: 2021-01-01
+tags:
+  - name: forecast
+    description: Foreacast related operation
+
+components:
+  schemas:
+    Forecast:
+      type: object
+      properties:
+        date:
+          format: date
+          type: string
+        temperatureC:
+          format: double
+          type: number
+        temperatureF:
+          format: double
+          type: number
+        summary:
+          type: string
