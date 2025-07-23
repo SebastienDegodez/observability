@@ -4,7 +4,7 @@ services:
 
   # Infrastructure
   loki:
-    image: grafana/loki:3.5.2
+    image: grafana/loki:3.5.3
     command: -config.file=/etc/loki/local-config.yml
     ports:
       - "3100:3100"
